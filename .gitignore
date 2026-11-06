@@ -2,4 +2,6 @@ samsung-tv-tools/
 samsung-tv-root/
 quiet-tizen/
 my-session.txt
+.local/
+.env
 
