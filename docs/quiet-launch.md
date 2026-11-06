@@ -80,10 +80,9 @@ computer `tizen cli-config` sets `profiles.path` to that file.
 
 This television installs Quiet Launch only when the signature is a Samsung
 author certificate plus a Samsung distributor certificate that lists this
-set. Create that certificate before packaging. The libraries, Certificate
-Manager, the Samsung Certificate Extension, and the wizard are in
-[certificates.md](certificates.md). The same steps are in the repository
-[README](../README.md).
+set. Create that certificate before packaging. The libraries and Certificate
+Manager are in [host-setup.md](host-setup.md). The wizard is in
+[certificates.md](certificates.md).
 
 The CLI profile named `quiet-launch` currently signs with the SDK public
 distributor certificate. That is the signature this television refused. Do
