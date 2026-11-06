@@ -74,13 +74,20 @@ After a clean install these paths exist, and none of them are tracked:
 
 | Path | What it is |
 |---|---|
-| `.local/tizen-studio/tools/sdb` | `sdb` 4.2.25 |
+| `.local/tizen-studio/tools/sdb` | `sdb` 4.2.36 now; the 6.0 installer first printed 4.2.25 |
 | `.local/tizen-studio-data` | Installer data directory |
 | `.local/home/.package-manager` | Bundled JDK and installer logs |
 | `.local/cache/web-cli_Tizen_Studio_6.0_ubuntu-64.bin` | The installer that was downloaded |
 
-No TV-extension packages and no Samsung certificate were installed. Those
-are for signing an application later.
+No TV-extension packages and no Samsung certificate were installed by the
+6.0 installer. A later package-manager run, documented in
+[certificates.md](certificates.md), updated the command-line packages already
+in this tree and then stopped. After that run, `sdb version` prints 4.2.36,
+`tizen version` still prints 2.5.25, and Package Manager prints 0.5.67.
+Certificate Manager is still absent. The same run recreated
+`~/.package-manager`. Its package-manager log was copied into
+`.local/home/.package-manager/install-log/package-manager/`, and the home
+directory was removed. The project already held the installer JDK.
 
 Check that `sdb` can load its libraries:
 

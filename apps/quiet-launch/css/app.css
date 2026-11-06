@@ -1,0 +1,142 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #f3f3f6;
+  color: #1d1d1f;
+  font-family: "SamsungOne", "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.home {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 4.5vh 4vw 4vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2vw;
+}
+
+.eyebrow, h1, .status, .card p, .photo-caption p {
+  margin: 0;
+}
+
+.eyebrow {
+  font-size: 1.4vw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6e6e76;
+}
+
+h1 {
+  margin-top: 0.4vh;
+  font-size: 3.4vw;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.status {
+  max-width: 36vw;
+  text-align: right;
+  font-size: 1.35vw;
+  line-height: 1.35;
+  color: #4c4c55;
+}
+
+.sources {
+  margin-top: 4vh;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1.4vw;
+  min-height: 46vh;
+}
+
+.dock {
+  margin-top: 2.2vh;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1vw;
+  min-height: 18vh;
+}
+
+.card {
+  border: 0;
+  border-radius: 1.6vw;
+  padding: 1.6vw;
+  text-align: left;
+  color: inherit;
+  background: #fff;
+  box-shadow: 0 1.2vh 2.4vh rgba(28, 28, 40, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.card strong {
+  font-size: 1.8vw;
+  font-weight: 650;
+}
+
+.card span {
+  margin-top: 0.6vh;
+  font-size: 1.15vw;
+  color: #5d5d66;
+}
+
+.tone-photo {
+  background: linear-gradient(160deg, #d9e4f5, #f7efe4 55%, #e7f0e4);
+}
+
+.tone-hdmi {
+  background: linear-gradient(180deg, #ececf8, #f7f7fb);
+}
+
+.card:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.35vw #3d4ab8, 0 1.2vh 2.4vh rgba(28, 28, 40, 0.08);
+}
+
+.photos {
+  position: fixed;
+  inset: 0;
+  background: #050506;
+}
+
+.photos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: drift 20s ease-in-out alternate infinite;
+}
+
+.photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8vh 4vw 4vh;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+  color: #f4f4f6;
+}
+
+.photo-caption p {
+  font-size: 1.5vw;
+}
+
+#photo-hint {
+  margin-top: 0.8vh;
+  color: rgba(244, 244, 246, 0.75);
+}
+
+@keyframes drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.045); }
+}

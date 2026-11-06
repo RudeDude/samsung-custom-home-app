@@ -35,6 +35,14 @@ Keys, screenshots, app cleanup, on-TV DNS blocking, and the
 `samsung-tv-root archive-root` cross-check have not been run. Do not run
 `tv-setup` on this build. It is unsupported there.
 
+Quiet Launch is a separate web app in `apps/quiet-launch`. It does not
+replace Samsung QuickLaunch and it does not change Home. A package signed
+with the public Tizen distributor certificate was refused by this television
+(`pkgcmd` error -4, no package id). Installing it needs a Samsung certificate
+that lists this set. See [docs/quiet-launch.md](docs/quiet-launch.md) and
+[docs/certificates.md](docs/certificates.md). Addresses and the device id
+for this set stay in `.local/private.md`.
+
 ## Reproduce this work
 
 Run the steps in order. Commands are written from the repository root.
@@ -62,9 +70,9 @@ Stop if the model or firmware build does not match the table above.
 - Run the QN90B or QN90F commands in `samsung-tv-root`, or build those payloads.
 - Flash, downgrade, or replace firmware.
 - Install Python on the television. The Python programs run on the computer.
-- Put a Google Photos client or a Google account on the television. Pictures,
-  later, come from a USB drive or a local network share. Ambient Mode is
-  acceptable. A signed Tizen page is the other acceptable path.
+- Put a Google Photos client or a Google account on the television. Pictures
+  come from files on this computer, packaged into Quiet Launch or served on
+  the LAN. The television's own USB storage is not read by this app.
 
 Bluetooth game controllers are out of scope.
 
