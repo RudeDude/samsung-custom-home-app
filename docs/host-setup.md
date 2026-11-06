@@ -79,15 +79,11 @@ After a clean install these paths exist, and none of them are tracked:
 | `.local/home/.package-manager` | Bundled JDK and installer logs |
 | `.local/cache/web-cli_Tizen_Studio_6.0_ubuntu-64.bin` | The installer that was downloaded |
 
-No TV-extension packages and no Samsung certificate were installed by the
-6.0 installer. A later package-manager run, documented in
-[certificates.md](certificates.md), updated the command-line packages already
-in this tree and then stopped. After that run, `sdb version` prints 4.2.36,
-`tizen version` still prints 2.5.25, and Package Manager prints 0.5.67.
-Certificate Manager is still absent. The same run recreated
-`~/.package-manager`. Its package-manager log was copied into
-`.local/home/.package-manager/install-log/package-manager/`, and the home
-directory was removed. The project already held the installer JDK.
+The 6.0 installer does not add Certificate Manager. That install is the next
+section. A package-manager update of the command-line packages already in
+this tree left `sdb version` printing 4.2.36, `tizen version` printing
+2.5.25, and Package Manager printing 0.5.67. The 6.0 installer had first
+printed `sdb` 4.2.25.
 
 Check that `sdb` can load its libraries:
 
@@ -98,6 +94,57 @@ ldd .local/tizen-studio/tools/sdb | awk '/not found/ {print}'
 No output means the libraries are present. On this Ubuntu 24.04 machine the
 check was empty.
 
+## Certificate Manager and its libraries
+
+Quiet Launch needs a Samsung certificate before this television will install
+it. Creating that certificate is a separate step, in
+[certificates.md](certificates.md). The packages below only install the
+window. They do not create the certificate.
+
+The package manager's heaptrack check wants three Ubuntu libraries. From this
+session it cannot ask for a sudo password. Install them in a normal terminal.
+A dry run on this Ubuntu 24.04 machine listed 69 new packages, mostly Qt 5
+and KDE Frameworks libraries. Leave the firewall enabled. Do not install
+Tizen Studio with apt.
+
+```bash
+sudo apt install libkf5itemmodels5 libkf5kiowidgets5 libkchart2
+```
+
+Then, from the repository root:
+
+```bash
+HOME="$(pwd)/.local/home" \
+  .local/tizen-studio/package-manager/package-manager-cli.bin \
+  install --accept-license --no-java-check Certificate-Manager,cert-add-on
+```
+
+`Certificate-Manager` is the window, version 3.1.3 on this computer.
+`cert-add-on` is the Samsung Certificate Extension, version 2.0.75. Do not
+pass a sudo password on that command line, and do not store one in this
+repository.
+
+The launcher is:
+
+```text
+.local/tizen-studio/tools/certificate-manager/certificate-manager
+```
+
+It is a shell script that starts the `eclipse` binary in the same directory,
+using `.local/tizen-studio/jdk/bin/java` (OpenJDK 1.8.0_242 here). Open it
+from the desktop session. An SSH-only shell will not show the window.
+
+On this computer both packages are installed. Package Manager lists them with
+status installed. The first attempt, before the three libraries were
+installed, updated the CLI packages and then stopped. The second attempt
+printed `Installation has been completed` for each package.
+
+Each package-manager run can recreate a real `~/.package-manager` even when
+`HOME` points at `.local/home`. Copy
+`~/.package-manager/install-log/package-manager/` into
+`.local/home/.package-manager/install-log/package-manager/`, then remove the
+home directory. `~/.bashrc` was not modified. Its mtime stayed 2026-07-29.
+
 ## What is deliberately not installed
 
 - A virtualenv for `samsung-tv-root`, and `make common-payload`.
@@ -105,6 +152,8 @@ check was empty.
   the `samsung-tv-tools` checkout. It uses the Python standard library plus
   the system `openssl` command.
 - Pillow, pytest, Ruff, or PyInstaller.
+- The full Eclipse Tizen Studio IDE. Certificate Manager is the separate
+  window installed above.
 - A copy of `sdb` on `PATH`. Later commands that need it export `SDB` for
   that shell:
 

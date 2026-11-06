@@ -74,17 +74,24 @@ On this computer, set `TV_HOST` from the television address in
 
 From the repository root. `tizen` is the project-local CLI under
 `.local/tizen-studio/tools/ide/bin/tizen`. Certificates stay in `.local/certs`,
-which git ignores.
+which git ignores. The profile file is
+`.local/tizen-studio-data/profile/profiles.xml`, also gitignored. On this
+computer `tizen cli-config` sets `profiles.path` to that file.
 
-`192.0.2.20` stands in for the computer's address on the LAN. Create an
-author certificate once, then add a security profile that uses that author
-certificate and the SDK public distributor certificate
-`tizen-distributor-signer-new.p12` (valid through 2032). The older
-`tizen-distributor-signer.p12` in the same folder expired in 2022. The
-distributor password shipped with Tizen Studio for the new file is
-`tizenpkcs12passfordsigner`. Keep the author password in `.local/certs` only.
-The bundled developer CA expires on 2027-01-01, so an author certificate
-from this SDK expires the same day.
+This television installs Quiet Launch only when the signature is a Samsung
+author certificate plus a Samsung distributor certificate that lists this
+set. Create that certificate before packaging. The libraries, Certificate
+Manager, the Samsung Certificate Extension, and the wizard are in
+[certificates.md](certificates.md). The same steps are in the repository
+[README](../README.md).
+
+The CLI profile named `quiet-launch` currently signs with the SDK public
+distributor certificate. That is the signature this television refused. Do
+not run `tizen package -s quiet-launch` again until that profile's
+distributor key is the Samsung `distributor.p12`. The command that replaces
+the profile is in [certificates.md](certificates.md).
+
+`192.0.2.20` stands in for the computer's address on the LAN.
 
 ```bash
 python3 tools/build_quiet_launch.py --photo-base "http://192.0.2.20:8765"
@@ -97,8 +104,8 @@ passwords in a form this CLI could not read back. Write the same author and
 distributor passwords as plain text in the gitignored `profiles.xml` and
 package again. Do not commit that file.
 
-The signed widget produced here is `.local/build/quiet-launch.wgt`. That
-copy is gitignored.
+The widget to install is `.local/build/quiet-launch.wgt`. That copy is
+gitignored. Keep the file name free of spaces.
 
 ## Install result on this television
 
@@ -115,11 +122,19 @@ No package id was assigned, and `installation-history.log` has no Quiet
 Launch row. Home and startup were not changed. The pushed copy was removed
 from the television.
 
-This set does not accept the public Tizen distributor signature. The
-certificate that works is a Samsung distributor certificate whose device list
-includes this television. The steps, including the Certificate Manager
-window, are in [certificates.md](certificates.md). Addresses and the DUID
-stay in `.local/`, which git ignores.
+The refused widget used `.local/certs/author.p12` and the SDK file
+`tizen-distributor-signer-new.p12` (Tizen Studio Public Signer, valid through
+2032). The older `tizen-distributor-signer.p12` in the same folder expired
+in 2022. The distributor password shipped with Tizen Studio for the new file
+is `tizenpkcs12passfordsigner`. The author password for that rejected
+signature is only in `.local/certs/author.password`. The bundled developer CA
+expires on 2027-01-01, so an author certificate from this SDK expires the
+same day.
+
+The signature this television accepts is a Samsung distributor certificate
+whose device list includes this set. The Certificate Manager window and the
+wizard are in [certificates.md](certificates.md). Addresses and the DUID stay
+in `.local/`, which git ignores.
 
 Until that certificate exists, Quiet Launch does not appear under Apps.
 Nothing needs to be pressed on the remote for the refusal above. Developer

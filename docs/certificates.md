@@ -29,9 +29,17 @@ installed on this computer. The project has the command-line slice under
 manager.
 
 Certificate Manager and the Samsung Certificate Extension are separate
-packages. They are not installed yet. One attempt updated the command-line
-packages already in `.local/tizen-studio`, then stopped before either
-certificate package was unpacked. After that update:
+packages. Both are installed in this tree now. Package Manager lists
+`Certificate-Manager` 3.1.3 and `cert-add-on` 2.0.75 (Samsung Certificate
+Extension) with status installed. The window is:
+
+```text
+.local/tizen-studio/tools/certificate-manager/certificate-manager
+```
+
+The first attempt updated the command-line packages already in
+`.local/tizen-studio`, then stopped before either certificate package was
+unpacked. After that update:
 
 | Command | What it printed |
 |---|---|
@@ -44,10 +52,11 @@ The 6.0 command-line installer had originally left `sdb` at 4.2.25. See
 
 The installer stopped in its heaptrack prerequisite check. That check wants
 three Ubuntu libraries, and from this session it could not ask for a sudo
-password (`pkexec` had no terminal). Install the libraries in a normal
-terminal, where you can type the password. A dry run on this Ubuntu 24.04
-machine listed 69 new packages, mostly Qt 5 and KDE Frameworks libraries.
-Leave the firewall enabled. Do not install Tizen Studio with apt.
+password (`pkexec` had no terminal). Those libraries are installed on this
+computer now. On a new machine, install them in a normal terminal, where you
+can type the password. A dry run on this Ubuntu 24.04 machine listed 69 new
+packages, mostly Qt 5 and KDE Frameworks libraries. Leave the firewall
+enabled. Do not install Tizen Studio with apt.
 
 ```bash
 sudo apt install libkf5itemmodels5 libkf5kiowidgets5 libkchart2
@@ -63,22 +72,19 @@ HOME="$(pwd)/.local/home" \
 ```
 
 `Certificate-Manager` is the window. `cert-add-on` is the Samsung Certificate
-Extension, version 2.0.75 in the extension list. Do not pass a sudo password
-on that command line, and do not store one in this repository.
+Extension. Do not pass a sudo password on that command line, and do not
+store one in this repository.
 
-The same run can recreate a real `~/.package-manager`. Move it back under
-`.local/home/.package-manager/` the way [host-setup.md](host-setup.md)
-describes, then remove the home copy.
+The same run can recreate a real `~/.package-manager`. Move its log back
+under `.local/home/.package-manager/install-log/` the way
+[host-setup.md](host-setup.md) describes, then remove the home copy.
 
-After a successful install, this file exists:
-
-```text
-.local/tizen-studio/tools/certificate-manager/certificate-manager
-```
-
-If that path is missing, the install did not finish. It is a window. Open it
+On this computer that second run finished. The launcher script is present,
+and it starts the Eclipse binary beside it with the project JDK at
+`.local/tizen-studio/jdk/bin/java` (OpenJDK 1.8.0_242). Open the launcher
 from the desktop session on this computer. An SSH-only shell will not show
-it.
+the window. The Samsung account sign-in in the next section is still yours
+to do.
 
 The `HOME` override matches the original tool install. Certificate Manager
 may still write the Samsung account files under the real home directory
@@ -133,12 +139,39 @@ again without that privilege.
 
 ## After the files exist
 
-Tell the packaging step where `author.p12` and `distributor.p12` were saved.
-Leave the passwords in the files above.
+The CLI profile named `quiet-launch` still points at
+`.local/certs/author.p12` and the SDK public distributor file
+`tizen-distributor-signer-new.p12`. That is the signature this television
+refused. Leave it in place until `author.p12` and `distributor.p12` from the
+wizard are on disk. Those Samsung files are not the same as
+`.local/certs/author.p12`.
 
-Sign and install only while `tv-access` is not connected. The television
-accepts one SDB client. Use a package file name without spaces.
-`quiet-launch.wgt` is the name to keep.
+The profile file is `.local/tizen-studio-data/profile/profiles.xml`. On this
+computer `tizen cli-config` sets `profiles.path` to that file. It is
+gitignored. From the repository root, after the Samsung files exist, replace
+the profile. Set `AUTHOR` and `DIST` to the real paths. If the wizard wrote
+under your home directory, use `~/SamsungCertificate/quiet-launch/` instead.
+
+```bash
+AUTHOR=.local/home/SamsungCertificate/quiet-launch/author.p12
+DIST=.local/home/SamsungCertificate/quiet-launch/distributor.p12
+.local/tizen-studio/tools/ide/bin/tizen security-profiles remove -n quiet-launch
+.local/tizen-studio/tools/ide/bin/tizen security-profiles add -n quiet-launch -A \
+  -a "$AUTHOR" \
+  -p "$(cat .local/certs/samsung-author.password)" \
+  -d "$DIST" \
+  -dp "$(cat .local/certs/samsung-distributor.password)"
+```
+
+Passwords stay in those two files. If the wizard did not ask for a
+distributor password, do not invent one. If packaging later reports
+`Invaild password`, write the same passwords as plain text in `profiles.xml`
+and package again. Do not commit that file.
+
+Build the widget as in [quiet-launch.md](quiet-launch.md). Sign and install
+only while `tv-access` is not connected. The television accepts one SDB
+client. Use a package file name without spaces. `quiet-launch.wgt` is the
+name to keep.
 
 ```bash
 .local/tizen-studio/tools/sdb connect 192.0.2.10:26101
