@@ -61,3 +61,27 @@ All three commands exited 0. Raw output is in `.local/inventory/`.
 | Rows with `app_disable` true | 0 |
 
 Both the Home app and the startup app are in the package list. They are not the same ID. The 55-inch S90D note that Home was `com.samsung.tv.csfs` matches this set. Startup on this set is the TV viewer, not that Home app. Do not change either value from this inventory.
+
+## Native page host
+
+A later read inspected `com.samsung.tv.quicklaunch` and every `bin/*.dll` under `/opt/usr/apps`. Raw output is in `.local/inventory/quicklaunch.txt`, `native-dlls.txt`, and `shell-keys.txt`. Nothing was changed.
+
+`com.samsung.tv.bixby-promotion` is not installed. That is the package Quiet Tizen replaces with its home screen.
+
+`com.samsung.tv.quicklaunch` is installed and matches the file owner Quiet Tizen checks:
+
+| Check | Value |
+|---|---|
+| Account that owns the files | `tizenglobalapp`, uid 201, group `root` |
+| Launch account named by the TV | `owner`, uid 5001 |
+| `QuickLaunch.dll` | mode `755`, 309760 bytes, SMACK `User::Pkg::com.samsung.tv.quicklaunch::RO` |
+| Native image | `bin/.native_image/QuickLaunch.ni.dll`, same SMACK label |
+| Manifest | `type="dotnet-inhouse"`, `exec="QuickLaunch.dll"`, `api-version="8"`, built-in app |
+| Package flags | enabled, not on boot, no autorestart |
+| More key | two `XF86More` rows: one targets `com.samsung.tv.quicklaunch`, one targets `org.tizen.function-osd` |
+
+The More key binding is why this package is not a spare shell. Replacing `QuickLaunch.dll` would take over that remote button. Quiet Tizen's settings-bridge recipe also requires exactly one `XF86More` row for this app. This TV has two, so that recipe would stop before writing.
+
+The DLL survey found 204 DLLs in 79 packages. The non-resource DLLs are owned by `tizenglobalapp`. None of those packages is an unused promotion container. The small single-DLL packages are Ambient scenes (`*-tpl`), `com.samsung.tv.home.art`, `com.samsung.tv.ambientfte`, or other live features. `org.tizen.art-app` is the larger Art application. Those stay in place because Ambient and art are part of the picture-frame goal.
+
+`org.tizen.menu` owns the Settings key (`XF86SysMenu`) and the accessibility shortcuts. `com.samsung.tv.csfs` owns the source, quick-settings, and apps keys. Neither is a host for a replacement page.
