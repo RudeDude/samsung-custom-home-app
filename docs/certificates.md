@@ -162,10 +162,24 @@ Manager still open:
 
 After **Finish**, **App Signing** lists two profiles. The new row's
 distributor path is under a `SamsungCertificate/quiet-launch-samsung/`
-directory, not `tizen-distributor-signer-new.p12`. Check both of these:
+directory, not `tizen-distributor-signer-new.p12`. The wizard writes that
+directory in your real home folder, `~/SamsungCertificate/quiet-launch-samsung/`.
+Move it into the project and remove the empty home directory:
 
-- `.local/home/SamsungCertificate/quiet-launch-samsung/`
-- `~/SamsungCertificate/quiet-launch-samsung/`
+```bash
+mkdir -p .local/home/SamsungCertificate
+mv ~/SamsungCertificate/quiet-launch-samsung .local/home/SamsungCertificate/
+rmdir ~/SamsungCertificate
+chmod 700 .local/home/SamsungCertificate .local/home/SamsungCertificate/quiet-launch-samsung
+chmod 600 .local/home/SamsungCertificate/quiet-launch-samsung/*
+```
+
+`.local/` is gitignored, so the certificates stay out of commits. On this
+computer that move is done. The files are in
+`.local/home/SamsungCertificate/quiet-launch-samsung/`. The signing profile
+`quiet-launch-samsung` is already active, and its key paths point at that
+directory. The author certificate was issued by Samsung VD Author CA. The
+distributor certificate was issued by the Samsung public developer CA.
 
 Public privilege is the level Samsung gives without a separate partner
 application. Opening other apps from Quiet Launch uses
@@ -181,14 +195,16 @@ Leave the CLI profile named `quiet-launch` in place. It still points at
 with `-s quiet-launch` signs the widget the television already refused.
 
 The Samsung author file is a different `author.p12`, under
-`SamsungCertificate/quiet-launch-samsung/`. The profile file is
+`.local/home/SamsungCertificate/quiet-launch-samsung/`. The profile file is
 `.local/tizen-studio-data/profile/profiles.xml`. On this computer
 `tizen cli-config` sets `profiles.path` to that file. It is gitignored.
+Certificate Manager already added `quiet-launch-samsung` and made it active.
+After the move, that profile's key paths were updated to the project
+directory. Do not run the add command again on this computer.
 
-If **Finish** did not add `quiet-launch-samsung` there, register it from the
+On a machine where **Finish** did not add the profile, register it from the
 repository root. Set `AUTHOR` and `DIST` to the directory that actually
-contains the new files. If the wizard wrote under your home directory, use
-`~/SamsungCertificate/quiet-launch-samsung/` instead.
+contains the new files.
 
 ```bash
 AUTHOR=.local/home/SamsungCertificate/quiet-launch-samsung/author.p12
@@ -207,10 +223,9 @@ password. If packaging later reports `Invaild password`, write the same
 passwords as plain text in `profiles.xml` and package again. Do not commit
 that file.
 
-Package with `-s quiet-launch-samsung`. The build command in
-[quiet-launch.md](quiet-launch.md) still shows `-s quiet-launch` because that
-is the profile used for the refused widget. Change the `-s` name when the
-Samsung profile exists.
+Package with `-s quiet-launch-samsung`, as in
+[quiet-launch.md](quiet-launch.md). `-s quiet-launch` still signs with the
+refused public distributor certificate.
 
 Build the widget as in [quiet-launch.md](quiet-launch.md). Sign and install
 only while `tv-access` is not connected. The television accepts one SDB

@@ -88,16 +88,17 @@ The CLI profile named `quiet-launch` signs with the SDK public distributor
 certificate. Certificate Manager shows that same profile on **App Signing**:
 author `.local/certs/author.p12`, distributor `tizen-distributor-signer-new.p12`.
 That is the signature this television refused. The Samsung profile is a
-second profile, named `quiet-launch-samsung`, created in
-[certificates.md](certificates.md). Do not run `tizen package -s quiet-launch`
-for a new install. After that Samsung profile exists, package with
+second profile, named `quiet-launch-samsung`, and it is the active profile.
+Its keys are in `.local/home/SamsungCertificate/quiet-launch-samsung/`,
+which git ignores. Create it with the steps in
+[certificates.md](certificates.md). Package new builds with
 `-s quiet-launch-samsung`.
 
 `192.0.2.20` stands in for the computer's address on the LAN.
 
 ```bash
 python3 tools/build_quiet_launch.py --photo-base "http://192.0.2.20:8765"
-.local/tizen-studio/tools/ide/bin/tizen package -t wgt -s quiet-launch \
+.local/tizen-studio/tools/ide/bin/tizen package -t wgt -s quiet-launch-samsung \
   -o .local/build -- .local/build/quiet-launch
 ```
 
