@@ -88,12 +88,41 @@ to do.
 
 The `HOME` override matches the original tool install. Certificate Manager
 may still write the Samsung account files under the real home directory
-`~/SamsungCertificate/`. Check both of these after the wizard finishes:
+`~/SamsungCertificate/`. The folder name is the profile name from the wizard,
+`quiet-launch-samsung`.
 
-- `.local/home/SamsungCertificate/quiet-launch/`
-- `~/SamsungCertificate/quiet-launch/`
+## The profile already on screen
 
-## Create the profile
+Certificate Manager opens on the **App Signing** tab with one profile,
+`quiet-launch`. That row is the Tizen signature from the earlier packaging
+attempt. It is the signature this television refused. Leave it. Do not edit
+it, do not remove it, and do not install with it again.
+
+You are looking at that old profile when both of these are true:
+
+- The author path ends in `.local/certs/author.p12`.
+- The distributor path ends in `tizen-distributor-signer-new.p12`.
+
+The passwords on that row are already set. The GUI hides them.
+
+| What the row shows | Where the password is |
+|---|---|
+| Author, `.local/certs/author.p12` | the one line in `.local/certs/author.password` |
+| Distributor, `tizen-distributor-signer-new.p12` | the Tizen Studio public signer password recorded in [quiet-launch.md](quiet-launch.md) under the refused widget |
+
+`.local/certs/samsung-author.password` and
+`.local/certs/samsung-distributor.password` are not missing. They are
+created only when the Samsung wizard below asks you to choose those
+passwords. Until then the only password file in `.local/certs/` is
+`author.password`, and `SamsungCertificate/` does not exist yet.
+
+Developer Mode can stay on. Do not enter `12345` again unless the computer's
+address on the television has changed. That address is the computer address
+in `.local/private.md`. Nothing on the remote is required for this window.
+The device id is already the single line in `.local/certs/duid`. Paste that
+line when the wizard asks. Do not connect `sdb` from this step.
+
+## Create the Samsung profile
 
 You need a Samsung account you can sign into in a browser. An account that
 is only signed in on the television is a different login. Create the account
@@ -104,31 +133,39 @@ Quiet Launch has to be signed with the same author certificate. If a later
 package is signed with a different author certificate, the television treats
 it as a different application.
 
-1. Open Certificate Manager from the path above.
-2. If a dialog titled **Migration for Certificate Profile** appears, click
-   **Cancel**.
-3. Click the **+** button.
-4. Choose **Samsung**. Choose **TV**. Click **Next**.
-5. Name the profile `quiet-launch`. Click **Next**.
-6. Choose **Create a new author certificate**. Click **Next**.
-7. Fill in the name and password the wizard asks for. Write the password as
-   one line in `.local/certs/samsung-author.password` and run
-   `chmod 600` on that file. Do not put the password in a tracked file or in
-   chat.
-8. The wizard opens a browser. Sign in to the Samsung account. That login
-   stays with you.
-9. When it asks for a backup folder, use `.local/certs/`. Click **Next**.
-10. Choose **Create a new distributor certificate**. Click **Next**.
-11. Set the privilege to **Public**. In the device list, paste the single
-    line from `.local/certs/duid`. This 2024 set does not show that value
-    under Support the way older sets do.
-12. If the wizard asks for a distributor password, save it the same way in
-    `.local/certs/samsung-distributor.password` with mode `0600`.
-13. Click through and choose **Finish**.
+Keep the existing `quiet-launch` row. Add a second profile. With Certificate
+Manager still open:
 
-Developer Mode can stay as it is. You do not enter `12345` again unless the
-computer's address on the television has changed. That address is the
-computer address in `.local/private.md`.
+1. If a dialog titled **Migration for Certificate Profile** appears, click
+   **Cancel**.
+2. On **App Signing**, click the **+** button. Do not click the existing
+   `quiet-launch` row.
+3. Choose **Samsung**. Choose **TV**. Click **Next**.
+4. Name the profile `quiet-launch-samsung`. The name `quiet-launch` is
+   already the refused Tizen profile. Click **Next**.
+5. Choose **Create a new author certificate**. Click **Next**. Do not choose
+   the existing `.local/certs/author.p12`.
+6. Fill in the name and password the wizard asks for. Write that new
+   password as one line in `.local/certs/samsung-author.password` and run
+   `chmod 600` on that file. Do not put the password in a tracked file or in
+   chat. Do not copy `author.password` over it.
+7. The wizard opens a browser. Sign in to the Samsung account. That login
+   stays with you.
+8. When it asks for a backup folder, use `.local/certs/`. Click **Next**.
+9. Choose **Create a new distributor certificate**. Click **Next**.
+10. Set the privilege to **Public**. In the device list, paste the single
+    line from `.local/certs/duid`. Leave extra blank rows empty. This 2024
+    set does not show that value under Support the way older sets do.
+11. If the wizard asks for a distributor password, save it the same way in
+    `.local/certs/samsung-distributor.password` with mode `0600`.
+12. Click through and choose **Finish**.
+
+After **Finish**, **App Signing** lists two profiles. The new row's
+distributor path is under a `SamsungCertificate/quiet-launch-samsung/`
+directory, not `tizen-distributor-signer-new.p12`. Check both of these:
+
+- `.local/home/SamsungCertificate/quiet-launch-samsung/`
+- `~/SamsungCertificate/quiet-launch-samsung/`
 
 Public privilege is the level Samsung gives without a separate partner
 application. Opening other apps from Quiet Launch uses
@@ -139,24 +176,25 @@ again without that privilege.
 
 ## After the files exist
 
-The CLI profile named `quiet-launch` still points at
-`.local/certs/author.p12` and the SDK public distributor file
-`tizen-distributor-signer-new.p12`. That is the signature this television
-refused. Leave it in place until `author.p12` and `distributor.p12` from the
-wizard are on disk. Those Samsung files are not the same as
-`.local/certs/author.p12`.
+Leave the CLI profile named `quiet-launch` in place. It still points at
+`.local/certs/author.p12` and `tizen-distributor-signer-new.p12`. Packaging
+with `-s quiet-launch` signs the widget the television already refused.
 
-The profile file is `.local/tizen-studio-data/profile/profiles.xml`. On this
-computer `tizen cli-config` sets `profiles.path` to that file. It is
-gitignored. From the repository root, after the Samsung files exist, replace
-the profile. Set `AUTHOR` and `DIST` to the real paths. If the wizard wrote
-under your home directory, use `~/SamsungCertificate/quiet-launch/` instead.
+The Samsung author file is a different `author.p12`, under
+`SamsungCertificate/quiet-launch-samsung/`. The profile file is
+`.local/tizen-studio-data/profile/profiles.xml`. On this computer
+`tizen cli-config` sets `profiles.path` to that file. It is gitignored.
+
+If **Finish** did not add `quiet-launch-samsung` there, register it from the
+repository root. Set `AUTHOR` and `DIST` to the directory that actually
+contains the new files. If the wizard wrote under your home directory, use
+`~/SamsungCertificate/quiet-launch-samsung/` instead.
 
 ```bash
-AUTHOR=.local/home/SamsungCertificate/quiet-launch/author.p12
-DIST=.local/home/SamsungCertificate/quiet-launch/distributor.p12
-.local/tizen-studio/tools/ide/bin/tizen security-profiles remove -n quiet-launch
-.local/tizen-studio/tools/ide/bin/tizen security-profiles add -n quiet-launch -A \
+AUTHOR=.local/home/SamsungCertificate/quiet-launch-samsung/author.p12
+DIST=.local/home/SamsungCertificate/quiet-launch-samsung/distributor.p12
+.local/tizen-studio/tools/ide/bin/tizen security-profiles add \
+  -n quiet-launch-samsung -A \
   -a "$AUTHOR" \
   -p "$(cat .local/certs/samsung-author.password)" \
   -d "$DIST" \
@@ -164,9 +202,15 @@ DIST=.local/home/SamsungCertificate/quiet-launch/distributor.p12
 ```
 
 Passwords stay in those two files. If the wizard did not ask for a
-distributor password, do not invent one. If packaging later reports
-`Invaild password`, write the same passwords as plain text in `profiles.xml`
-and package again. Do not commit that file.
+distributor password, do not invent one and do not reuse the public signer
+password. If packaging later reports `Invaild password`, write the same
+passwords as plain text in `profiles.xml` and package again. Do not commit
+that file.
+
+Package with `-s quiet-launch-samsung`. The build command in
+[quiet-launch.md](quiet-launch.md) still shows `-s quiet-launch` because that
+is the profile used for the refused widget. Change the `-s` name when the
+Samsung profile exists.
 
 Build the widget as in [quiet-launch.md](quiet-launch.md). Sign and install
 only while `tv-access` is not connected. The television accepts one SDB

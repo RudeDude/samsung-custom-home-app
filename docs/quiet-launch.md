@@ -84,11 +84,14 @@ set. Create that certificate before packaging. The libraries and Certificate
 Manager are in [host-setup.md](host-setup.md). The wizard is in
 [certificates.md](certificates.md).
 
-The CLI profile named `quiet-launch` currently signs with the SDK public
-distributor certificate. That is the signature this television refused. Do
-not run `tizen package -s quiet-launch` again until that profile's
-distributor key is the Samsung `distributor.p12`. The command that replaces
-the profile is in [certificates.md](certificates.md).
+The CLI profile named `quiet-launch` signs with the SDK public distributor
+certificate. Certificate Manager shows that same profile on **App Signing**:
+author `.local/certs/author.p12`, distributor `tizen-distributor-signer-new.p12`.
+That is the signature this television refused. The Samsung profile is a
+second profile, named `quiet-launch-samsung`, created in
+[certificates.md](certificates.md). Do not run `tizen package -s quiet-launch`
+for a new install. After that Samsung profile exists, package with
+`-s quiet-launch-samsung`.
 
 `192.0.2.20` stands in for the computer's address on the LAN.
 
