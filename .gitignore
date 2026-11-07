@@ -5,4 +5,5 @@ quiet-tizen/
 my-session.txt
 .local/
 .env
+workspace/
 

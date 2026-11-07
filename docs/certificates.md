@@ -83,8 +83,9 @@ On this computer that second run finished. The launcher script is present,
 and it starts the Eclipse binary beside it with the project JDK at
 `.local/tizen-studio/jdk/bin/java` (OpenJDK 1.8.0_242). Open the launcher
 from the desktop session on this computer. An SSH-only shell will not show
-the window. The Samsung account sign-in in the next section is still yours
-to do.
+the window. Opening it creates a `workspace/` directory in the repository
+root. That directory is Eclipse metadata for this window, and git ignores
+it. The Samsung account sign-in in the next section is still yours to do.
 
 The `HOME` override matches the original tool install. Certificate Manager
 may still write the Samsung account files under the real home directory
