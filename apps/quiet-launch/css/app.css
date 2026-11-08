@@ -14,11 +14,14 @@ body {
 }
 
 .home {
+  position: relative;
+  z-index: 1;
   box-sizing: border-box;
   min-height: 100vh;
   padding: 4.5vh 4vw 4vh;
   display: flex;
   flex-direction: column;
+  background: transparent;
 }
 
 .top {
@@ -32,11 +35,57 @@ body {
   margin: 0;
 }
 
+#backdrop {
+  display: none;
+  position: fixed;
+  inset: -15%;
+  z-index: 0;
+  background-position: center;
+  background-size: cover;
+  filter: blur(52px);
+  transform: scale(1.12);
+}
+
+.backdrop-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgba(247, 244, 239, 0.58);
+}
+
+body.has-backdrop #backdrop,
+body.has-backdrop .backdrop-scrim {
+  display: block;
+}
+
+body.hdmi-live #backdrop,
+body.hdmi-live .backdrop-scrim,
+body.photos-live #backdrop,
+body.photos-live .backdrop-scrim,
+body.hdmi-live .home,
+body.photos-live .home {
+  display: none !important;
+}
+
+#keep-awake {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .eyebrow {
   font-size: 1.4vw;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6e6e76;
+  text-shadow: 0 0.1vh 0.4vh rgba(255, 255, 255, 0.7);
 }
 
 h1 {
@@ -44,6 +93,7 @@ h1 {
   font-size: 3.4vw;
   font-weight: 650;
   letter-spacing: -0.03em;
+  text-shadow: 0 0.15vh 0.5vh rgba(255, 255, 255, 0.75);
 }
 
 .status {
@@ -54,26 +104,18 @@ h1 {
   color: #4c4c55;
 }
 
-.sources {
+.launchers {
   margin-top: 4vh;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 1.4vw;
-  min-height: 46vh;
-}
-
-.dock {
-  margin-top: 2.2vh;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: 18vh;
   gap: 1vw;
-  min-height: 18vh;
 }
 
 .card {
   border: 0;
-  border-radius: 1.6vw;
-  padding: 1.6vw;
+  border-radius: 1.2vw;
+  padding: 1.1vw;
   text-align: left;
   color: inherit;
   background: #fff;
@@ -81,6 +123,13 @@ h1 {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  min-height: 0;
+  height: 100%;
+}
+
+.card-blank {
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: none;
 }
 
 .card strong {
@@ -107,8 +156,17 @@ h1 {
   box-shadow: 0 0 0 0.35vw #3d4ab8, 0 1.2vh 2.4vh rgba(28, 28, 40, 0.08);
 }
 
+body.photos-live {
+  background: #050506;
+}
+
 body.hdmi-live {
   background: transparent;
+}
+
+.photos,
+.hdmi {
+  z-index: 5;
 }
 
 .hdmi {
@@ -161,6 +219,15 @@ body.hdmi-live {
 
 .photo-caption.is-hidden {
   opacity: 0;
+}
+
+.photo-caption.title-only #photo-timing,
+.photo-caption.title-only #photo-hint {
+  display: none;
+}
+
+.photo-caption.with-wait #photo-timing {
+  display: block;
 }
 
 .photo-caption p {

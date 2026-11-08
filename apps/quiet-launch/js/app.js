@@ -34,14 +34,42 @@
 
   function holdScreen() {
     screensaver(false);
+    if (window.tizen && tizen.power && tizen.power.request) {
+      try { tizen.power.request("SCREEN", "SCREEN_NORMAL"); } catch (err) { /* TV builds often omit this call */ }
+      try { tizen.power.request("CPU", "CPU_AWAKE"); } catch (err) { /* TV builds often omit this call */ }
+    }
+    var video = document.getElementById("keep-awake");
+    if (!video) {
+      video = document.createElement("video");
+      video.id = "keep-awake";
+      video.muted = true;
+      video.loop = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("aria-hidden", "true");
+      document.body.appendChild(video);
+    }
+    if (!video.getAttribute("src")) video.src = "media/keep-awake.mp4";
+    var pending = video.play();
+    if (pending && pending.catch) pending.catch(function () {});
     window.clearInterval(saverTimer);
-    saverTimer = window.setInterval(function () { screensaver(false); }, 60000);
+    saverTimer = window.setInterval(function () { screensaver(false); }, 30000);
   }
 
   function releaseScreen() {
     window.clearInterval(saverTimer);
     saverTimer = 0;
     screensaver(true);
+    if (window.tizen && tizen.power && tizen.power.release) {
+      try { tizen.power.release("SCREEN"); } catch (err) { /* already released */ }
+      try { tizen.power.release("CPU"); } catch (err) { /* already released */ }
+    }
+    var video = document.getElementById("keep-awake");
+    if (video) {
+      video.pause();
+      video.removeAttribute("src");
+      try { video.load(); } catch (err) { /* the element is about to be removed */ }
+      if (video.parentNode) video.parentNode.removeChild(video);
+    }
   }
 
   function button(item, row, col) {
@@ -61,14 +89,22 @@
   }
 
   function render() {
-    var sources = document.getElementById("sources");
     var dock = document.getElementById("dock");
-    rows = [catalog.sources, catalog.apps];
-    catalog.sources.forEach(function (item, col) {
-      sources.appendChild(button(item, 0, col));
-    });
-    catalog.apps.forEach(function (item, col) {
-      dock.appendChild(button(item, 1, col));
+    var columns = catalog.columns || 7;
+    rows = [];
+    catalog.items.forEach(function (item, index) {
+      var row = Math.floor(index / columns);
+      var col = index % columns;
+      if (!rows[row]) rows[row] = [];
+      rows[row][col] = item.blank ? null : item;
+      if (item.blank) {
+        var empty = document.createElement("div");
+        empty.className = "card card-blank";
+        empty.setAttribute("aria-hidden", "true");
+        dock.appendChild(empty);
+      } else {
+        dock.appendChild(button(item, row, col));
+      }
     });
     focus(0, 0);
   }
@@ -78,27 +114,77 @@
   }
 
   function focus(row, col) {
+    var next = cell(row, col);
+    if (!next) return;
     var current = cell(focusAt[0], focusAt[1]);
     if (current) current.tabIndex = -1;
     focusAt = [row, col];
-    var next = cell(row, col);
-    if (!next) return;
     next.tabIndex = 0;
     next.focus();
   }
 
+  function firstFilled(row) {
+    var col;
+    if (!rows[row]) return -1;
+    for (col = 0; col < rows[row].length; col += 1) {
+      if (rows[row][col]) return col;
+    }
+    return -1;
+  }
+
+  function lastFilled(row) {
+    var col;
+    if (!rows[row]) return -1;
+    for (col = rows[row].length - 1; col >= 0; col -= 1) {
+      if (rows[row][col]) return col;
+    }
+    return -1;
+  }
+
   function move(dRow, dCol) {
-    var row = focusAt[0] + dRow;
-    var col = focusAt[1] + dCol;
-    if (row < 0 || row >= rows.length) return;
-    if (col < 0) col = 0;
-    if (col >= rows[row].length) col = rows[row].length - 1;
+    var row = focusAt[0];
+    var col = focusAt[1];
+    var nextCol;
+    if (dCol === 1) {
+      nextCol = col + 1;
+      while (rows[row] && nextCol < rows[row].length && !rows[row][nextCol]) nextCol += 1;
+      if (rows[row] && nextCol < rows[row].length && rows[row][nextCol]) {
+        focus(row, nextCol);
+        return;
+      }
+      if (row + 1 < rows.length) {
+        nextCol = firstFilled(row + 1);
+        if (nextCol >= 0) focus(row + 1, nextCol);
+      }
+      return;
+    }
+    if (dCol === -1) {
+      nextCol = col - 1;
+      while (nextCol >= 0 && rows[row] && !rows[row][nextCol]) nextCol -= 1;
+      if (nextCol >= 0 && rows[row][nextCol]) {
+        focus(row, nextCol);
+        return;
+      }
+      if (row > 0) {
+        nextCol = lastFilled(row - 1);
+        if (nextCol >= 0) focus(row - 1, nextCol);
+      }
+      return;
+    }
+    row = focusAt[0] + dRow;
+    col = focusAt[1];
+    if (row < 0 || row >= rows.length || !rows[row]) return;
+    if (!rows[row][col]) {
+      col = firstFilled(row);
+      if (col < 0) return;
+    }
     focus(row, col);
   }
 
   function activate(item) {
     if (item.action === "photos") openPhotos();
-    else if (item.action === "hdmi") openHdmi(item.number);
+    else if (item.action === "hdmi") openInput("hdmi", item.number, item.title);
+    else if (item.action === "tuner") openInput("tuner", 0, item.title);
     else launchApp(item);
   }
 
@@ -127,35 +213,47 @@
     return type === "HDMI" && Number(source.number) === number;
   }
 
-  function findHdmi(info, number) {
+  function isTuner(source) {
+    if (!source || source.type == null) return false;
+    var type = String(source.type).toUpperCase();
+    return type === "TV" || type === "DTV" || type === "ATV";
+  }
+
+  function findSource(info, kind, number) {
     var lists = [info && info.connected, info && info.disconnected];
-    var i, j, list;
+    var i, j, list, source;
     for (i = 0; i < lists.length; i += 1) {
       list = lists[i] || [];
       for (j = 0; j < list.length; j += 1) {
-        if (isHdmi(list[j], number)) return list[j];
+        source = list[j];
+        if (kind === "hdmi" && isHdmi(source, number)) return source;
+        if (kind === "tuner" && isTuner(source)) return source;
       }
     }
     return null;
   }
 
-  function showHdmiWindow(source, done) {
+  function showInputWindow(source, done) {
     var rect = ["0px", "0px", "1920px", "1080px"];
-    try {
+    function show() {
       tizen.tvwindow.show(function () {
         tizen.tvwindow.setSource(source, function () { done(); }, function (err) { done(err); });
-      }, function (err) { done(err); }, rect, "MAIN", "BEHIND");
+      }, function (err) { done(err); }, rect, "MAIN", "FRONT");
+    }
+    try {
+      if (tizen.tvwindow.hide) tizen.tvwindow.hide(show, show);
+      else show();
     } catch (err) {
       done(err);
     }
   }
 
-  function enterHdmi(number) {
+  function enterInput(label) {
     hdmiOpen = true;
     document.body.classList.add("hdmi-live");
     home.hidden = true;
     hdmi.hidden = false;
-    hdmiHint.textContent = "HDMI " + number + ". Back returns to Quiet Launch.";
+    hdmiHint.textContent = label + ". Back returns to Quiet Launch.";
     revealHdmiHint();
   }
 
@@ -184,31 +282,32 @@
     say("Arrows move. OK opens. Back returns to Samsung Home.");
   }
 
-  function openHdmi(number) {
+  function openInput(kind, number, title) {
     if (!window.tizen || !tizen.systeminfo || !tizen.tvwindow) {
-      say("HDMI " + number + " is not available from this page. Use the TV source button.");
+      say(title + " is not available from this page. Use the TV source button.");
       return;
     }
-    say("Opening HDMI " + number + "…");
+    releaseScreen();
+    say("Opening " + title + "…");
     try {
       tizen.systeminfo.getPropertyValue("VIDEOSOURCE", function (info) {
-        var source = findHdmi(info, number);
+        var source = findSource(info, kind, number);
         if (!source) {
-          say("HDMI " + number + " is not on this television.");
+          say(title + " is not on this television.");
           return;
         }
-        showHdmiWindow(source, function (err) {
+        showInputWindow(source, function (err) {
           if (err) {
-            say("HDMI " + number + " was refused (" + errText(err) + ").");
+            say(title + " was refused (" + errText(err) + ").");
             return;
           }
-          enterHdmi(number);
+          enterInput(title);
         });
       }, function (err) {
-        say("HDMI " + number + " could not be listed (" + errText(err) + ").");
+        say(title + " could not be listed (" + errText(err) + ").");
       });
     } catch (err) {
-      say("HDMI " + number + " was refused (" + errText(err) + ").");
+      say(title + " was refused (" + errText(err) + ").");
     }
   }
 
@@ -253,6 +352,7 @@
       slide.base = fromRemote ? base : "";
       slide.images = images;
       slide.index = 0;
+      document.body.classList.add("photos-live");
       home.hidden = true;
       photos.hidden = false;
       showSlide();
@@ -315,8 +415,11 @@
     document.querySelector(".photo-caption").classList.add("is-hidden");
   }
 
-  function revealOverlay() {
-    document.querySelector(".photo-caption").classList.remove("is-hidden");
+  function revealOverlay(mode) {
+    var caption = document.querySelector(".photo-caption");
+    caption.classList.remove("is-hidden", "title-only", "with-wait");
+    if (mode === "title") caption.classList.add("title-only");
+    if (mode === "wait") caption.classList.add("title-only", "with-wait");
     window.clearTimeout(slide.nameTimer);
     slide.nameTimer = window.setTimeout(hideOverlay, 10000);
   }
@@ -330,7 +433,8 @@
     }
     photoName.textContent = (item && item.name) || ("Picture " + (slide.index + 1));
     paintTiming();
-    revealOverlay();
+    revealOverlay(slide.introduced ? "title" : "full");
+    slide.introduced = true;
   }
 
   function step(delta) {
@@ -348,7 +452,7 @@
     }
     saveAdvance();
     paintTiming();
-    revealOverlay();
+    revealOverlay("wait");
     restartTimer();
   }
 
@@ -356,7 +460,7 @@
     advance.unit = advance.unit === "minutes" ? "seconds" : "minutes";
     saveAdvance();
     paintTiming();
-    revealOverlay();
+    revealOverlay("wait");
     restartTimer();
   }
 
@@ -370,8 +474,10 @@
     releaseScreen();
     hideOverlay();
     photos.hidden = true;
+    document.body.classList.remove("photos-live");
     home.hidden = false;
     slide.shownUrl = "";
+    slide.introduced = false;
     photo.removeAttribute("src");
     focus(focusAt[0], focusAt[1]);
     say("Arrows move. OK opens. Back returns to Samsung Home.");
@@ -420,7 +526,45 @@
     if (document.hidden) releaseScreen();
     else if (!photos.hidden) holdScreen();
   });
+  function pictureUrl(item, base) {
+    var url = typeof item === "string" ? item : (item && item.url) || "";
+    if (/^https?:/i.test(url)) return url;
+    if (!base) return url;
+    if (url.charAt(0) === "/") return base + url;
+    return base + "/" + url.replace(/^\.\//, "");
+  }
+
+  function paintBackdrop(images, base) {
+    if (!images || !images.length) return;
+    var item = images[Math.floor(Math.random() * images.length)];
+    var url = pictureUrl(item, base);
+    var layer = document.getElementById("backdrop");
+    if (!layer || !url) return;
+    var probe = new Image();
+    probe.onload = function () {
+      layer.style.backgroundImage = "url(\"" + url.replace(/"/g, "") + "\")";
+      document.body.classList.add("has-backdrop");
+    };
+    probe.src = url;
+  }
+
+  function loadBackdrop() {
+    var base = String(window.QUIET_PHOTO_BASE || "").replace(/\/$/, "");
+    var fromRemote = false;
+    var remote = base ? loadManifest(base + "/manifest.json").then(function (data) {
+      fromRemote = true;
+      return data;
+    }) : Promise.reject(new Error("no server"));
+    remote.catch(function () {
+      fromRemote = false;
+      return loadManifest("photos/manifest.json");
+    }).then(function (data) {
+      paintBackdrop((data && data.images) || [], fromRemote ? base : "");
+    }).catch(function () {});
+  }
+
   document.addEventListener("keydown", onKey);
   registerBack();
   render();
+  loadBackdrop();
 })();

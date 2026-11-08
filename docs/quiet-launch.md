@@ -3,12 +3,15 @@
 Quiet Launch is a signed Tizen web app in `apps/quiet-launch`. It is a calm
 page for a few inputs and the apps already on the television, plus a picture
 view. It does not replace `com.samsung.tv.quicklaunch`, and it does not change
-Home (`com.samsung.tv.csfs`) or startup (`org.tizen.tv-viewer`).
+Home (`com.samsung.tv.csfs`). On this set, startup is Quiet Launch. The
+previous startup app was `org.tizen.tv-viewer`.
 
 The page is light, uses the television's own fonts, and moves focus with the
-remote. The launcher background is a soft color gradient. Photos fill the
-screen. Back on the launcher asks Samsung Home to open. The physical Home
-button is not registered by this app.
+remote. Behind the cards, the page shows one picture chosen at random from
+the picture server, heavily blurred. If that server cannot be read, it uses
+a packaged picture, and if neither is available it keeps the soft gradient.
+Photos fill the screen. Back on the launcher asks Samsung Home to open. The
+physical Home button is not registered by this app.
 
 ## What you press
 
@@ -23,12 +26,18 @@ under the name **Quiet Launch**.
 - Up and Down while pictures are showing change how long each picture stays.
   Up makes the wait longer. Down makes it shorter.
 - OK while pictures are showing switches that wait between seconds and minutes.
-- While pictures are on screen, the page turns the television screensaver
-  off and repeats that request once a minute. Closing the pictures, or
-  leaving the app, turns the screensaver on again.
-- The file name, the wait, and the key hint hide together after 10 seconds.
-  Left, right, up, down, or OK shows that text again for 10 seconds.
-  The HDMI line hides the same way.
+- The first picture in a viewing session shows the file name, the wait,
+  and the key hint. Those hide together after 10 seconds. Each later
+  picture shows only the file name, then that fades after 10 seconds.
+  Up, down, or OK brings the wait line back for 10 seconds.
+- While pictures are on screen, the page asks the television to keep the
+  screensaver off, and it plays a tiny silent video so the panel is not
+  looking at a still image. Closing the pictures, or leaving the app,
+  turns the screensaver on again and stops that video. On this OLED, the
+  two-minute still-image screensaver is a panel protection Samsung does
+  not let an app turn off. The silent video is the request the page can
+  make beyond that setting.
+- The HDMI line hides after 10 seconds. A key press shows it again.
 - The first run waits 20 seconds. After that, the last choice is remembered
   on the television. Seconds move in steps of 5, from 5 to 300. Minutes move
   in steps of 1, from 1 to 60.
@@ -37,16 +46,35 @@ If the television shows a first-run or install confirmation, press OK on the
 remote. Developer Mode stays as it is. You do not enter `12345` again unless
 the computer's address on the television has changed.
 
-HDMI 1 and HDMI 2 ask the television for that connected input and show it
-full screen. Back returns to Quiet Launch. The page uses
-`tizen.tvwindow`, which needs the public `tv.window` privilege. If a port
-is not on the set, the status line says so. USB storage on the television
+Photos cover the launcher. The launcher cards are hidden until Back.
+The cards are one size. In order they are Photos, Live TV, Prime Video,
+Disney+, YouTube, Spotify, HBO Max, ESPN, Blu-ray on HDMI 1, and Nintendo
+Switch on HDMI 2. Four empty places are left for later. Live TV selects
+the tuner. It does not reopen the last HDMI input. Blu-ray and
+Nintendo Switch ask the television for that connected input. The picture
+is shown with `tizen.tvwindow.show` in front of the page, which is the
+position Samsung documents for the TV window. Putting it behind the page
+leaves a black screen while the sound plays. Back returns to Quiet Launch.
+The page needs the public `tv.window` privilege. If a port is not on the
+set, the status line says so. Right at the end of a row moves to the first
+card on the next row. Left at the start of a row moves to the last card on
+the previous row. USB storage on the television
 is not read by this app.
+
+## Startup
+
+Quiet Launch is the startup app on this television. The key is
+`db/appfw/startup_appid`, and its value is `qlaunch001.QuietHome`. Home
+stays `com.samsung.tv.csfs`, so the Home button still opens Samsung Home.
+The previous startup value was `org.tizen.tv-viewer` (Live TV). To put Live
+TV back at power-on, set that key to `org.tizen.tv-viewer`. Do not point
+Home at Quiet Launch.
 
 ## Opening it from the remote
 
 This widget cannot take the Home button. Home stays `com.samsung.tv.csfs`.
-Startup stays `org.tizen.tv-viewer`. Do not point either value at Quiet Launch.
+Do not point Home at Quiet Launch. Startup is separate and is set in the
+section above.
 
 On a 2024 solar remote, the button that also opens the number pad can cycle
 through Settings, the color-button pad, and SmartThings. Holding it is not a

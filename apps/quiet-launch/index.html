@@ -8,6 +8,8 @@
   <script src="$WEBAPIS/webapis/webapis.js"></script>
 </head>
 <body>
+  <div id="backdrop" aria-hidden="true"></div>
+  <div class="backdrop-scrim" aria-hidden="true"></div>
   <main id="home" class="home">
     <header class="top">
       <div>
@@ -16,8 +18,7 @@
       </div>
       <p id="status" class="status" role="status">Arrows move. OK opens. Back returns to Samsung Home.</p>
     </header>
-    <section id="sources" class="sources"></section>
-    <section id="dock" class="dock"></section>
+    <section id="dock" class="launchers"></section>
   </main>
   <section id="hdmi" class="hdmi" hidden>
     <p id="hdmi-hint"></p>

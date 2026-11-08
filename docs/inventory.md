@@ -60,7 +60,7 @@ All three commands exited 0. Raw output is in `.local/inventory/`.
 | Registered app rows | 547 |
 | Rows with `app_disable` true | 0 |
 
-Both the Home app and the startup app are in the package list. They are not the same ID. The 55-inch S90D note that Home was `com.samsung.tv.csfs` matches this set. Startup on this set is the TV viewer, not that Home app. Do not change either value from this inventory.
+Both the Home app and the startup app are in the package list. They are not the same ID. The 55-inch S90D note that Home was `com.samsung.tv.csfs` matches this set. Startup at the time of this inventory was the TV viewer, not that Home app. Do not change Home from this inventory. Startup was later set to Quiet Launch, which is recorded in [quiet-launch.md](quiet-launch.md).
 
 ## Native page host
 

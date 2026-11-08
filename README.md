@@ -20,8 +20,9 @@ checkouts keep their own licenses and are not committed here.
 
 Developer Mode is on, and temporary root through `samsung-tv-tools` works.
 `id -u` printed `0`. A read-only inventory then recorded Home as
-`com.samsung.tv.csfs` and startup as `org.tizen.tv-viewer`. Those were not
-changed. See [docs/inventory.md](docs/inventory.md).
+`com.samsung.tv.csfs` and startup as `org.tizen.tv-viewer`. Home is still
+that value. Startup was later set to Quiet Launch. See
+[docs/quiet-launch.md](docs/quiet-launch.md).
 
 | Field | Value |
 |---|---|
