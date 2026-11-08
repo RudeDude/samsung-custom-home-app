@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=1920">
   <title>Quiet Launch</title>
   <link rel="stylesheet" href="css/app.css">
   <script src="$WEBAPIS/webapis/webapis.js"></script>
@@ -19,11 +19,15 @@
     <section id="sources" class="sources"></section>
     <section id="dock" class="dock"></section>
   </main>
+  <section id="hdmi" class="hdmi" hidden>
+    <p id="hdmi-hint"></p>
+  </section>
   <section id="photos" class="photos" hidden>
-    <img id="photo" alt="">
+    <img id="photo" alt="" decoding="sync">
     <div class="photo-caption">
       <p id="photo-name"></p>
-      <p id="photo-hint">Back returns to Quiet Launch</p>
+      <p id="photo-timing"></p>
+      <p id="photo-hint">Left and right change the picture. Up and down change the time. OK switches seconds and minutes. Back returns.</p>
     </div>
   </section>
   <script src="js/catalog.js"></script>

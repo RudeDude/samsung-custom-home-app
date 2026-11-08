@@ -36,8 +36,10 @@ Keys, screenshots, app cleanup, on-TV DNS blocking, and the
 `tv-setup` on this build. It is unsupported there.
 
 Quiet Launch is a separate web app in `apps/quiet-launch`. It does not
-replace Samsung QuickLaunch and it does not change Home. It is not installed
-on the television yet. See [docs/quiet-launch.md](docs/quiet-launch.md).
+replace Samsung QuickLaunch and it does not change Home. The installed
+package id is `qlaunch001`. That id must stay exactly 10 letters or digits.
+The 9-character id `qlaunch00` fails install with `Load archive info fail`.
+See [docs/quiet-launch.md](docs/quiet-launch.md).
 The host packages are in [docs/host-setup.md](docs/host-setup.md). The
 Samsung certificate is in [docs/certificates.md](docs/certificates.md).
 

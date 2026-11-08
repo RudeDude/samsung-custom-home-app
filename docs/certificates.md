@@ -9,9 +9,15 @@ processing result : Operation not allowed [-4] failed
 ```
 
 Home stayed `com.samsung.tv.csfs`. Startup stayed `org.tizen.tv-viewer`.
-The public Tizen distributor certificate is not enough for this set. The
-signature that works is a Samsung author certificate plus a Samsung
-distributor certificate whose device list includes this television.
+The public Tizen distributor certificate is the wrong signer for a Samsung
+television. Use a Samsung author certificate plus a Samsung distributor
+certificate whose device list includes this set.
+
+The package id has to be exactly 10 letters or digits before that signature
+matters. `qlaunch00` is 9 characters and this television rejects it with
+`Load archive info fail` (`[118, -4]`) before it checks the certificate.
+The id that installed is `qlaunch001`. Do not shorten it. The full warning
+is in [quiet-launch.md](quiet-launch.md).
 
 Addresses, the DUID, and the firewall command for this set live in
 `.local/private.md`. That file is gitignored. The DUID itself is the single
@@ -193,9 +199,13 @@ again without that privilege.
 
 Leave the CLI profile named `quiet-launch` in place. It still points at
 `.local/certs/author.p12` and `tizen-distributor-signer-new.p12`. Packaging
-with `-s quiet-launch` signs the widget the television already refused.
+with `-s quiet-launch` is not a television install. The file now stored at
+`.local/certs/author.p12` is a byte-for-byte copy of the Samsung author
+certificate below, not the SDK author certificate that signed the refused
+widget. `.local/certs/author.password` does not open that copy. The Samsung
+author password does.
 
-The Samsung author file is a different `author.p12`, under
+The Samsung author file also lives under
 `.local/home/SamsungCertificate/quiet-launch-samsung/`. The profile file is
 `.local/tizen-studio-data/profile/profiles.xml`. On this computer
 `tizen cli-config` sets `profiles.path` to that file. It is gitignored.
@@ -233,17 +243,22 @@ only while `tv-access` is not connected. The television accepts one SDB
 client. Use a package file name without spaces. `quiet-launch.wgt` is the
 name to keep.
 
+`sdb install` only copies the file. It can exit 0 when nothing was installed.
+Install with `tizen install`:
+
 ```bash
 .local/tizen-studio/tools/sdb connect 192.0.2.10:26101
-.local/tizen-studio/tools/sdb install .local/build/quiet-launch.wgt
+.local/tizen-studio/tools/ide/bin/tizen install \
+  -n .local/build/quiet-launch.wgt -s 192.0.2.10:26101
 .local/tizen-studio/tools/sdb kill-server
 ```
 
 If Device Manager is open, right-click the television and choose **Permit to
-install applications**. If the television shows a one-time allow or install
-confirmation, press **OK** on the remote. Until the Samsung signature is
-installed, Quiet Launch is not in the Apps list and there is nothing new to
-press.
+install applications**. That writes `device-profile.xml` under
+`/home/developer`. On this set that file was already in place and the archive
+error did not change. If the television shows a one-time allow or install
+confirmation, press **OK** on the remote. Until an install reports a package
+id, Quiet Launch is not in the Apps list and there is nothing new to press.
 
 Open the installed app from **Smart Hub → Apps → Quiet Launch**. To open it
 from the computer without making it Home:
@@ -251,7 +266,7 @@ from the computer without making it Home:
 ```bash
 TV_HOST=192.0.2.10 XDG_CACHE_HOME=.local/cache \
   ./samsung-tv-tools/tools/tv_access/tv-access \
-  'app_launcher -u 5001 -s qlaunch00.QuietHome'
+  'app_launcher -u 5001 -s qlaunch001.QuietHome'
 ```
 
 Run that only after `sdb kill-server`.
